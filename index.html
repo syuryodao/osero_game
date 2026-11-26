@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>数学研究ノート</title>
+
+<style>
+body{
+ margin:0;
+ background:#eee6c8;
+ font-family:"Yu Mincho",serif;
+ color:#222;
+}
+
+.notebook{
+ width:850px;
+ min-height:700px;
+ margin:30px auto;
+ padding:45px;
+ background:#fffdf4;
+ box-shadow:0 0 20px #777;
+ background-image:linear-gradient(#ddd 1px,transparent 1px);
+ background-size:100% 32px;
+ position:relative;
+}
+
+h1{
+ font-size:30px;
+}
+
+h2{
+ margin-top:35px;
+}
+
+.note{
+ position:absolute;
+ right:40px;
+ top:30px;
+ color:#777;
+}
+
+.formula{
+ font-size:22px;
+ margin:20px;
+ font-style:italic;
+}
+
+
+/* 隠し数字 */
+.secret{
+ cursor:pointer;
+}
+
+.secret:hover{
+ color:red;
+ text-shadow:0 0 8px red;
+}
+
+
+/* オセロ */
+.game{
+ display:none;
+ margin-top:40px;
+}
+
+.board{
+ display:grid;
+ grid-template-columns:repeat(8,55px);
+ width:440px;
+ border:3px solid black;
+}
+
+.cell{
+ width:55px;
+ height:55px;
+ background:#16803c;
+ border:1px solid #064d22;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ font-size:38px;
+ cursor:pointer;
+}
+
+.black{
+ color:black;
+}
+
+.white{
+ color:white;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="notebook">
+
+<div class="note">
+数学研究ノート No.
+<span class="secret" onclick="startGame()">12</span>
+</div>
+
+
+<h1>
+基本のまとめ
+</h1>
+
+
+<h2>奇数の規則性</h2>
+
+<p>
+1,
+<span class="secret" onclick="startGame()">3</span>,
+5,
+7,
+9...
+
+</p>
+
+
+
+<h2>図形の面積</h2>
+
+<p>
+1辺が
+<span class="secret" onclick="startGame()">3</span>
+cmの正方形
+</p>
+
+<p class="formula">
+面積 = 3 × 3 = 9 cm²
+</p>
+
+
+<h2>数列</h2>
+
+<p>
+1, 1, 2,
+<span class="secret" onclick="startGame()">3</span>,
+5, 8...
+</p>
+
+
+<p>
+※無断転載を禁じる
+</p>
+
+
+<div class="game" id="game">
+
+<h2>
+おせろげーむ
+</h2>
+
+<div class="board" id="board"></div>
+
+<p id="status"></p>
+
+</div>
+
+
+</div>
+<script>
+
+let board=[];
+let turn="black";
+
+const dirs=[
+ [1,0],[-1,0],[0,1],[0,-1],
+ [1,1],[-1,-1],[1,-1],[-1,1]
+];
+
+
+function startGame(){
+ document.getElementById("game").style.display="block";
+ init();
+}
+
+
+function init(){
+
+ board=Array(8).fill()
+ .map(()=>Array(8).fill(""));
+
+ board[3][3]="white";
+ board[4][4]="white";
+ board[3][4]="black";
+ board[4][3]="black";
+
+ turn="black";
+
+ draw();
+
+}
+
+
+
+function draw(){
+
+ let area=document.getElementById("board");
+ area.innerHTML="";
+
+
+ for(let y=0;y<8;y++){
+
+  for(let x=0;x<8;x++){
+
+   let c=document.createElement("div");
+
+   c.className="cell";
+
+
+   if(board[y][x]){
+    c.innerHTML="●";
+    c.classList.add(board[y][x]);
+   }
+
+
+   c.onclick=()=>playerMove(x,y);
+
+   area.appendChild(c);
+
+  }
+
+ }
+
+
+ document.getElementById("status").textContent=
+ turn+"の番";
+
+}
+
+
+
+
+function playerMove(x,y){
+
+ if(turn!=="black") return;
+
+ if(!canPut(x,y,"black")) return;
+
+
+ put(x,y,"black");
+
+ turn="white";
+
+ draw();
+
+
+ setTimeout(aiMove,700);
+
+}
+
+
+
+
+
+function canPut(x,y,color){
+
+ if(board[y][x]!="") return false;
+
+
+ let enemy=color==="black"?"white":"black";
+
+
+ for(let d of dirs){
+
+  let nx=x+d[0];
+  let ny=y+d[1];
+  let count=0;
+
+
+  while(
+   nx>=0&&ny>=0&&nx<8&&ny<8&&
+   board[ny][nx]===enemy
+  ){
+
+   count++;
+
+   nx+=d[0];
+   ny+=d[1];
+
+  }
+
+
+  if(
+   count>0 &&
+   nx>=0&&ny>=0&&nx<8&&ny<8&&
+   board[ny][nx]===color
+  ){
+   return true;
+  }
+
+ }
+
+
+ return false;
+
+}
+
+
+
+
+function put(x,y,color){
+
+ board[y][x]=color;
+
+ let enemy=color==="black"?"white":"black";
+
+
+ for(let d of dirs){
+
+  let change=[];
+
+  let nx=x+d[0];
+  let ny=y+d[1];
+
+
+  while(
+   nx>=0&&ny>=0&&nx<8&&ny<8&&
+   board[ny][nx]===enemy
+  ){
+
+   change.push([nx,ny]);
+
+   nx+=d[0];
+   ny+=d[1];
+
+  }
+
+
+  if(
+   nx>=0&&ny>=0&&nx<8&&ny<8&&
+   board[ny][nx]===color
+  ){
+
+   change.forEach(p=>{
+    board[p[1]][p[0]]=color;
+   });
+
+  }
+
+ }
+
+}
+
+
+
+
+
+function aiMove(){
+
+ let moves=[];
+
+
+ for(let y=0;y<8;y++){
+
+  for(let x=0;x<8;x++){
+
+   if(canPut(x,y,"white")){
+
+    let score=0;
+
+
+    // 角は強い
+    if(
+     (x==0||x==7)&&
+     (y==0||y==7)
+    ){
+     score+=100;
+    }
+
+
+    // ひっくり返せる数を評価
+    score+=countFlip(x,y,"white");
+
+
+    moves.push({
+     x:x,
+     y:y,
+     score:score
+    });
+
+   }
+
+  }
+
+ }
+
+
+ if(moves.length){
+
+  moves.sort((a,b)=>b.score-a.score);
+
+  let best=moves[0];
+
+  put(best.x,best.y,"white");
+
+ }
+
+
+ turn="black";
+
+ draw();
+
+}
+
+
+
+
+
+function countFlip(x,y,color){
+
+ let before=JSON.stringify(board);
+
+ put(x,y,color);
+
+ let after=0;
+
+
+ board.forEach(row=>{
+  row.forEach(v=>{
+   if(v===color) after++;
+  });
+ });
+
+
+ board=JSON.parse(before);
+
+
+ return after;
+
+}
+
+
+</script>
